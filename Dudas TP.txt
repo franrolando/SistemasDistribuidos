@@ -1,0 +1,12 @@
+* cual es la diferencia entre publicacion y nuevo topico (codigo 1 y codigo 3 del bkoquer) REQUEST/REPLAY
+
+*con que broker sincronizar los cliente ? Todos
+
+*cola de mensajes, como se trata, como se accede? La manejamos nosotros crearla y administrarla
+
+* una vez asignado el topico, hay que avisarle a todos los clientes que hay uno nuevo?
+
+* Las colas se limpian: cuando pasa X o pasa Y 
+
+La cola del broker debe retener hasta X mensajes (cantidad) y por un Y segundos (diferencia de tiempo entre el broker y el mensaje). Tanto X como Y deben ser parámetros del broker pasados como argumento.
+Si la cola se llena, se saca el que tenga la fecha de envío más antigua.

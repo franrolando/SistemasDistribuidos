@@ -10,6 +10,7 @@ const IP_ENVIA = '127.0.0.1';
 const PORT_ENVIA = '3001';
 const ID_BROKER = process.argv[2];
 let topics = [];
+let colaMensajes = [];
 
 subSocket.bindSync('tcp://' + IP_ENVIA + ':' + PORT_ENVIA + '')
 pubSocket.bindSync('tcp://' + IP_RECIBE + ':' + PORT_RECIBE + '')
@@ -35,38 +36,45 @@ responder.on('message', function (request) {
 			topics.push(request.topico)
 		case (2):
 			response = {
-				topico = request.topico,
-				ip = IP_ENVIA,
-				puerto = PORT_ENVIA,
-				accion = request.accion
+				resultados: {
+					datosBroker =[{
+						topico = request.topico,
+						ip = IP_ENVIA,
+						puerto = PORT_ENVIA,
+					}]
+				},
 			};
 			break;
 		case (3):
 			response = {
-				code = '',
+				resultados = {}
 			};
 			break;
 		case (4):
 			response = {
-				listaTopicos = topics,
+				resultados = {
+					listaTopicos = topics
+				}
 			};
 			break;
 		case (5):
 			response = {
-				mensajes = '',
+				resultados = {
+					mensajes = colaMensajes
+				}
 			};
 			break;
 		case (6):
 			response = {
-				code = '',
+				resultados = {}
 			};
 			break;
 		default:
 	}
-	
+
 	responder.send(response);
 });
 
-responder.bind('tcp://*:5555');
+responder.bind('tcp://127.0.0.1:5556');
 
 /***************************************************************************************************************************************/
