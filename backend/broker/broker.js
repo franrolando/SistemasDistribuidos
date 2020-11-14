@@ -26,55 +26,66 @@ pubSocket.on('message', function (topic) {
 /***************************************************************************************************************************************/
 
 var responder = zmq.socket('rep');
-
+responder.bind('tcp://127.0.0.1:5556');
 responder.on('message', function (request) {
 	request = JSON.parse(request);
-	console.log("Received request: [", request.toString(), "]");
+	console.log("Received request: [", request, "]");
 	let response;
 	switch (request.accion) {
 		case (1):
-			topics.push(request.topico)
+			
 		case (2):
-			response = {
-				resultados: {
-					datosBroker =[{
-						topico = request.topico,
-						ip = IP_ENVIA,
-						puerto = PORT_ENVIA,
-					}]
-				},
-			};
 			break;
 		case (3):
+			topics.push(request.topico)
 			response = {
-				resultados = {}
+				resultados : {}
 			};
 			break;
 		case (4):
 			response = {
-				resultados = {
-					listaTopicos = topics
+				exito : true,
+				accion : request.accion,
+				accion : request.idPeticion,
+				resultados : {
+					listaTopicos :topics
+				},
+				error : {
+					codigo : '',
+					mensaje : ''
 				}
-			};
+			}
 			break;
 		case (5):
 			response = {
-				resultados = {
-					mensajes = colaMensajes
+				exito : true,
+				accion : request.accion,
+				accion : request.idPeticion,
+				resultados : {
+					mensajes : colaMensajes
+				},
+				error : {
+					codigo : '',
+					mensaje : ''
 				}
-			};
+			}
 			break;
 		case (6):
+			mensajes = []
 			response = {
-				resultados = {}
-			};
+				exito : true,
+				accion : request.accion,
+				accion : request.idPeticion,
+				resultados : {},
+				error : {
+					codigo : '',
+					mensaje : ''
+				}
+			}
 			break;
 		default:
 	}
-
-	responder.send(response);
+	responder.send(JSON.stringify(response));
 });
-
-responder.bind('tcp://127.0.0.1:5556');
 
 /***************************************************************************************************************************************/
