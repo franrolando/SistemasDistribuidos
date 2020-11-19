@@ -1,0 +1,163 @@
+.main {
+    flex-direction: row;
+    display: flex;
+}
+
+/************* Navbar ******************/
+.navbar {
+    background-color: #665dfe;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    order: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    width: 4.375rem;
+    border-top: 0;
+    border-right: 1px solid #e5e9f2;
+    padding-left: 0;
+    padding-right: 0;
+    text-align: center;
+}
+
+.navbar ul{
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
+.navbar .nav-link {
+    padding-top: 0;
+    padding-bottom: 0;
+    height: 50px;
+    line-height: 50px;
+  }
+
+#nuevoMensaje svg{
+    color: white;
+    width: 30px;
+    height: 30px;
+}
+
+/************* Fin Navbar ******************/
+
+/************* Lista de chats ******************/
+#principal .row {
+    height: 100vh;
+}
+
+#logo img{
+    margin: 15px 10px 0 10px;
+}
+/*CHAT*/
+#chat{
+    border-left: 1px solid;
+    border-right: 1px solid;
+    border-color: #e5e9f2;
+    position: relative;
+    background: rgb(237,236,241);
+    background: linear-gradient(0deg, rgba(237,236,241,1) 0%, rgba(250,248,249,1) 100%);
+}
+
+
+.sidebar{
+    max-width: 420px;
+}
+.contacto{
+    border: 1px solid #e5e9f2;
+    border-radius: .25rem;
+    margin-bottom: 10px;
+    margin-top: 5px;
+    text-decoration: none;
+    color: #464646;
+    cursor: pointer;
+}
+
+.contacto:hover{
+    border-color: #665dfe;
+    color: #464646;
+}
+
+.contacto.active .avatar{
+    background-color: white !important;
+    color:#464646 !important;
+}
+.contacto.active{
+    background-color:  #665dfe;
+    border: 1px solid #665dfe;
+    color: white;
+}
+
+.contacto.todos .avatar{
+    background-color:  #665dfe;
+}
+
+.contacto .avatar{
+    width: 48px;
+    height: 48px;
+  line-height: 48px;
+  text-align: center;
+  background-color: #505050;
+  font-weight: bold;
+}
+
+.contacto .idUsuario{
+    font-weight: bold;
+}
+
+.contacto .media-body{
+    padding-left: 15px;
+}
+/************* Fin Lista de chats ******************/
+
+/************* Envio mensajes ******************/
+
+#chat .tab-content{
+    height: calc(100% - 100px);
+    background: white;
+    margin-top: 10px;
+    padding: 10px;
+}
+
+.formEnvioMensajes {
+    border-top: 1px solid #e5e9f2;
+    padding-top: 10px;
+    height: 60px;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.formEnvioMensajes input{
+    height: auto;
+    width: auto;
+}
+
+.formEnvioMensajes input:focus{
+    border-top: 1px solid #665dfe;
+}
+
+.formEnvioMensajes .send button{
+    border:none;
+    padding: 0 0 0 10px;
+}
+
+.formEnvioMensajes .send button:hover{
+    background:none;
+}
+
+.send svg{
+    width: auto;
+    height: 49px;
+}
+
+/************* Fin Envio mensajes ******************/
+
+/************* Info ******************/
+#info{
+    max-width: 300px;
+}
+
+/************* Fin Info ******************/
