@@ -41,15 +41,6 @@ reply.on('message', function (request) {
     case 3:
       asignarTopico(request)
       break;
-    case 4:
-      mostrarTopicos()
-      break;
-    case 5:
-      mostrarMensajes(request)
-      break;
-    case 6:
-      borrarMensajes(request)
-      break;
     case 7:
       peticionGrupo(request)
       break;
@@ -128,18 +119,7 @@ function suscripcionTopico(request) {
   }
   reply.send(JSON.stringify(response));
 }
-
-  function mostrarTopicos() {
-
-  }
-
-  function mostrarMensajes(request) {
-
-  }
-
-  function borrarMensajes(request) {
-
-  }
+ 
 
   function peticionGrupo(request) {
 
