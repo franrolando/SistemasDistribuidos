@@ -22,6 +22,11 @@ setInterval(() => {
     sincroNTP.getOffSetDelayNTP(clientNTP, callback);
 }, 120000);
 
+setInterval(function() {
+	console.log('Envia mensaje nº', counter)
+  sock.send(['/heartbeat', 'Este es el mensaje ' + counter++])
+}, 500)
+
 setTimeout(() => {
     ID_CLIENTE = init.getProp('ID_CLIENTE');
     COORDINADOR_IP = init.getProp('COORDINADOR_IP');
