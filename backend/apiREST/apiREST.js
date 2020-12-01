@@ -1,6 +1,9 @@
 const express = require('express')
+const cors = require('cors')
 const app = express()
 const port = 4500
+
+app.use(cors())
 let idPeticion = 0;
 let brokers = []
 let broker = {
