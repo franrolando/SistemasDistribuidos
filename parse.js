@@ -61,10 +61,10 @@ r.on('line', function(linea){
                 console.log('Mensaje: '+obj.mensaje);
                 break;
             case 'subscribirse':
-                //
+                topico = separado[1];
                 break;
-            case 'creargrupo':
-                //
+            case '/group':
+                let grupo = separado[1];
                 break;
             default:
                 console.log('Comando inexistente');
