@@ -1,9 +1,12 @@
+const zmq = require('zeromq');
+const requester = zmq.socket('req');
 let ID_CLIENTE;
 let idPeticion = 0;
 let brokers = [];
 let COORDINADOR_IP;
 let COORDINADOR_PUERTO;
 let fechaSincro = new Date();
+let mensajes = [];
 const sincroNTP = require('./clientSincro-NTP.js');
 const init = require('./init.js');
 const net = require('net');
@@ -25,8 +28,8 @@ setInterval(() => {
 setInterval(function () {
     console.log('Envia heartbeat')
     let obj = {
-        emisor : ID_CLIENTE,
-        fecha : fechaSincro
+        emisor: ID_CLIENTE,
+        fecha: fechaSincro
     }
     sock.send(['/heartbeat', obj]);
 }, 500)
@@ -35,22 +38,131 @@ setTimeout(() => {
     ID_CLIENTE = init.getProp('ID_CLIENTE');
     COORDINADOR_IP = init.getProp('COORDINADOR_IP');
     COORDINADOR_PUERTO = init.getProp('COORDINADOR_PUERTO');
+    requester.connect('tcp://' + COORDINADOR_IP + ':' + COORDINADOR_PUERTO);
+    requester.on("message", function (reply) {
+        reply = JSON.parse(reply);
+        console.log('Received reply: ');
+        console.log(reply)
+        if (reply.exito == true) {
+            switch (reply.accion) {
+                case (1):
+                    publicarMensajeReply(reply.resultados.datosBroker)
+                    break;
+                case (2):
+                case (3):
+                    subscribirseTopicoReply(reply.resultados.datosBroker)
+                    break;
+                default:
+                    console.log('Default case')
+            }
+        } else {
+            console.log(reply.error.codigo + ": " + reply.error.mensaje);
+        }
+    });
+    altaSubscripcion();
     initPrompt();
 }, 1000);
 
-function enviarMensaje(cliente, mensaje, topico) {
-    let i = 0;
-    let broker = null;
-    while (i < brokers.length && broker == null) {
-        if (brokers[i].topicos.some(topicoBroker => { topicoBroker == topico; })) {
-            broker = brokers[i];
-        }
-        i++;
-    }
-    if (broker != null) {
-        broker.
-    }
+function altaSubscripcion(){
     idPeticion++;
+    let request = {
+        idPeticion: idPeticion,
+        accion: 2,
+        topico: ID_CLIENTE
+    }
+    requester.send(JSON.stringify(request));
+}
+
+function subscribirseTopicoReply(brokersReply) {
+    brokersReply.forEach(brokerReply => {
+        let sock;
+        let broker = getBrokerByTopico(brokerReply.topico, "S");
+        if (broker != null){
+            sock = broker.sock;
+        } else {
+            sock = zmq.socket('sub')
+            sock.connect('tcp://' + brokerReply.ip + ':' + brokerReply.puerto);
+            sock.on('message', function (topic, message) {
+                console.log('Recibio topico:', topic.toString(), 'con mensaje:', message.toString())
+            })
+            let brokerNuevo = {
+                sock: sock,
+                tipo: "S",
+                ip: brokerReply.ip,
+                puerto: brokerReply.puerto,
+                topicos: [brokerReply.topico]
+            }
+            brokers.push(brokerNuevo);
+        }
+        sock.subscribe(brokerReply.topico);
+    });
+}
+
+function subscribirseTopico(topico) {
+    let broker = getBrokerByTopico(topico, "S");
+    if (broker != null) {
+        broker.sock.subscribe(topico);
+    } else {
+        let sock = zmq.socket('sub');
+        sock.connect('tcp://' + brokerReply.ip + ':' + brokerReply.puerto + '')
+        let brokerNuevo = {
+            sockPub: any,
+            sockSub: sub,
+            ip: brokerReply.ip,
+            puerto: brokerReply.puerto,
+            topicos: [brokerReply.topico]
+        }
+    }
+}
+
+function publicarMensaje(topico, mensaje) {
+    idPeticion++;
+    let broker = getBrokerByTopico(topico, "P");
+    if (broker != null) {
+        broker.sock.send([topico, mensaje])
+    } else {
+        guardaMensajeReqBroker(topico, mensaje);
+    }
+}
+
+function publicarMensajeReply(brokersReply) {
+    brokersReply.forEach(brokerReply => {
+        let sock;
+        let mensaje = mensajes.find(mensaje => mensaje.idPeticion == brokersReply.idPeticion);
+        if (brokers.some(broker => broker.ip == brokerReply.ip && broker.puerto == brokerReply.puerto)) {
+            let broker = brokers.find(broker => broker => broker.ip == brokerReply.ip && broker.puerto == brokerReply.puerto);
+            broker.topicos.push(brokerReply.topico);
+            sock = broker.sock;
+        } else {
+            sock = zmq.socket('pub');
+            sock.connect('tcp://' + brokerReply.ip + ':' + brokerReply.puerto + '')
+            let brokerNuevo = {
+                sock: sock,
+                tipo: "P",
+                ip: brokerReply.ip,
+                puerto: brokerReply.puerto,
+                topicos: [brokerReply.topico]
+            }
+            brokers.push(brokerNuevo);
+        }
+        sock.send([mensaje.topico, mensaje.mensaje]);
+        mensajes.splice(mensaje, 1);
+    });
+}
+
+function guardaMensajeReqBroker(topico, mensaje) {
+    let request = {
+        idPeticion: idPeticion,
+        accion: 1,
+        topico: topico
+    }
+    message = {
+        idPeticion: idPeticion,
+        topico: topico,
+        mensaje: mensaje
+    }
+    mensajes.push(message);
+    requester.send(JSON.stringify(request));
 }
 
 function a() {
@@ -60,6 +172,18 @@ function a() {
         socket.close();
     });
     socket.monitor(100, 0);
+}
+
+function getBrokerByTopico(topico, tipo) {
+    let i = 0;
+    let broker = null;
+    while (i < brokers.length && broker == null) {
+        if (brokers[i].tipo == tipo && brokers[i].topicos.some(topicoBroker => { topicoBroker.toLowerCase() == topico.toLowerCase() })) {
+            broker = brokers[i];
+        }
+        i++;
+    }
+    return broker;
 }
 
 function initPrompt() {
@@ -119,11 +243,7 @@ function initPrompt() {
                     obj.emisor = ID_CLIENTE;
                     obj.mensaje = mensaje;
                     obj.fecha = fechaSincro;
-                    console.log('Topico: ' + topico);
-                    console.log('Mensaje: ' + obj.mensaje);
-                    break;
-                case 'subscribirse':
-                    topico = separado[1];
+                    publicarMensaje(topico, obj);
                     break;
                 case '/group':
                     let grupo = separado[1];
