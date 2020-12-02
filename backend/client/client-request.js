@@ -1,7 +1,7 @@
 var zmq = require('zeromq');
+var requester = zmq.socket('req');
 const COORDINADOR_IP = '127.0.0.1';
 const COORDINADOR_PUERTO = 5555;
-var requester = zmq.socket('req');
 let brokers = []
 
 let broker = {
