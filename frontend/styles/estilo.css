@@ -1,11 +1,21 @@
+
+body {
+    height: 100vh;
+    min-height: 100vh;
+}
 .main {
     flex-direction: row;
-    display: flex;
+    display: flex;   
 }
 
-/************* Navbar ******************/
+#principal .row {
+    height: 100vh;
+}
+#logo img{
+    margin: 15px 10px 0 10px;
+}
 .navbar {
-    background-color: #665dfe;
+    background:  #665dfe url('../images/navbar.jpg') no-repeat bottom;
     height: 100vh;
     display: flex;
     flex-direction: column;
@@ -21,49 +31,15 @@
     text-align: center;
 }
 
-.navbar ul{
-    margin-top: auto;
-    margin-bottom: auto;
-}
-
-.navbar .nav-link {
-    padding-top: 0;
-    padding-bottom: 0;
-    height: 50px;
-    line-height: 50px;
-  }
-
-#nuevoMensaje svg{
-    color: white;
-    width: 30px;
-    height: 30px;
-}
-
-/************* Fin Navbar ******************/
-
-/************* Lista de chats ******************/
-#principal .row {
-    height: 100vh;
-}
-
-#logo img{
-    margin: 15px 10px 0 10px;
-}
-/*CHAT*/
-#chat{
-    border-left: 1px solid;
-    border-right: 1px solid;
-    border-color: #e5e9f2;
-    position: relative;
-    background: rgb(237,236,241);
-    background: linear-gradient(0deg, rgba(237,236,241,1) 0%, rgba(250,248,249,1) 100%);
-}
 
 
+
+/************* BROKERS ******************/
 .sidebar{
-    max-width: 420px;
+    max-width: 420px;    
+    height: 100%;
 }
-.contacto{
+.boton{
     border: 1px solid #e5e9f2;
     border-radius: .25rem;
     margin-bottom: 10px;
@@ -72,54 +48,124 @@
     color: #464646;
     cursor: pointer;
 }
-
-.contacto:hover{
-    border-color: #665dfe;
-    color: #464646;
-}
-
-.contacto.active .avatar{
-    background-color: white !important;
-    color:#464646 !important;
-}
-.contacto.active{
-    background-color:  #665dfe;
-    border: 1px solid #665dfe;
-    color: white;
-}
-
-.contacto.todos .avatar{
-    background-color:  #665dfe;
-}
-
-.contacto .avatar{
-    width: 48px;
-    height: 48px;
-  line-height: 48px;
-  text-align: center;
-  background-color: #505050;
-  font-weight: bold;
-}
-
-.contacto .idUsuario{
+    .boton:hover{
+        border-color: #665dfe;
+        color: #464646;
+    }
+    .boton.active .avatar{
+        background-color: white !important;
+        color:#464646 !important;
+    }
+    .boton.active{
+        background-color:  #665dfe;
+        border: 1px solid #665dfe;
+        color: white;
+    }
+    .boton.active span{
+        color:white!important;
+    }
+    .boton.active:hover{
+        color:#ffd461;
+        transition: all 0.5s;
+        -webkit-transition: all 0.5s;
+        -moz-transition: all 0.5s;
+    }
+    .boton .avatar{
+        width: 48px;
+        height: 48px;
+    line-height: 48px;
+    text-align: center;
+    background-color: #505050;
     font-weight: bold;
+    }
+    .boton .idBroker{
+        font-weight: bold;
+    }
+    .boton .media-body{
+        padding-left: 15px;
+    }
+    .boton span{
+        white-space: nowrap;
+    }
+/************* FIN BROKERS ******************/
+
+
+
+
+/************* TOPICOS ******************/
+#colTopics {
+    display: block;
+    max-width: 300px;
+    text-align: center;
+    padding-top: 15px;
+    border-left: 1px solid;
+    border-color: #e5e9f2;
+    height: 100%;
+}
+/************* Fin TOPICOS ******************/
+
+
+
+/*********************** MENSAJES ***********************/
+#chat{
+    min-width: 480px;
+    height: 100%;
+    border-left: 1px solid;
+    border-color: #e5e9f2;
+    position: relative;
+    background: rgb(237,236,241);
+    background: linear-gradient(0deg, rgba(237,236,241,1) 0%, rgba(250,248,249,1) 100%);
+}
+    #chat .tab-content{
+        height: calc(100% - 100px);
+        background: white;
+        margin-top: 10px;
+        padding: 10px;
+        padding-top: 5px;
+    }
+    #chat .tab-pane{
+        height: 100%;
+    }
+
+.chat-content div{
+    transition: all 1s;
+    -webkit-transition: all 1s;
+    -moz-transition: all 1s;
+    position: relative;
+    top: 0px;
 }
 
-.contacto .media-body{
-    padding-left: 15px;
+
+
+.rec{
+    max-width: 900px;
+    margin-bottom: 20px;
 }
-/************* Fin Lista de chats ******************/
+    .rec .emisor{
+        color:#665dfe;
+        font-weight: bold;
+        cursor: default;
+    }
+    .rec .fecha{
+        color:#cecece;
+        font-size: 12px;
+    }
+    .rec .cuerpoMensaje{   
+        padding: 20px 10px 20px 10px;
+        background: #f1f4f7;
+        border-radius: 0 5px 5px 5px;
+        margin-bottom: 10px;
+    }
+    .rec:hover .cuerpoMensaje{
+        background: #e4eaf1;
+    }
+    .rec:hover{
+        top: 5px;
+    }
 
-/************* Envio mensajes ******************/
 
-#chat .tab-content{
-    height: calc(100% - 100px);
-    background: white;
-    margin-top: 10px;
-    padding: 10px;
-}
 
-.formEnvioMensajes {
+#borrarMensajes{
     border-top: 1px solid #e5e9f2;
     padding-top: 10px;
     height: 60px;
@@ -130,34 +176,169 @@
     padding-right: 10px;
 }
 
-.formEnvioMensajes input{
-    height: auto;
-    width: auto;
+#borrarMensajes button{
+    display: none;
 }
 
-.formEnvioMensajes input:focus{
-    border-top: 1px solid #665dfe;
+    #borrarMensajes .send{
+    width: 100%;
+    text-align: center;
 }
 
-.formEnvioMensajes .send button{
+#borrarMensajes .send button{
+    background: none;
+    color: #665dfe;
     border:none;
     padding: 0 0 0 10px;
+    cursor: pointer;
+    outline: none;
+    transition:all 1s;
+    -webkit-transition:all 1s;
+    -moz-transition:all 1s;
 }
+    #borrarMensajes .send button:hover{
+        color:#2b2a73;
+        background: none;
+    }
+    #borrarMensajes .send button:active{
+        color: #665dfe;
+        background: none;
+        border: 0;
+    }
+    .send svg {
+        width: auto;
+        height: 22px;
+    }
 
-.formEnvioMensajes .send button:hover{
+
+#botBorrarMensajes{
+    color:#98979a;
+    border-color:#98979a;
     background:none;
+    border: 0;
+    transition: all 1s;
+    -webkit-transition: all 1s;
+    -moz-transition: all 1s;
+    border: 2px solid;
+    font-size: 15px;
+}
+#botBorrarMensajes:hover{
+    color:#4a47b9;
+    border-color: #4a47b9;
 }
 
-.send svg{
-    width: auto;
-    height: 49px;
+
+
+
+
+
+/******************scroll***********************/
+.demoScroll {
+    height: calc(100% - 120px);
+    overflow-y: auto;
+    overflow-x: scroll;
+    padding-right: 3px;
+}
+.sc2::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+}
+.sc2::-webkit-scrollbar-track {
+    background-color: rgba(255, 255, 255, 0.01);
+    border-radius: 10px;
+}
+.sc2::-webkit-scrollbar-thumb {
+    background-color: #dbdddf;
+    border-radius: 10px;
+}
+.chat-content.demoScroll{
+    height: calc(100% - 55px);
 }
 
-/************* Fin Envio mensajes ******************/
 
-/************* Info ******************/
-#info{
-    max-width: 300px;
+
+/******************responsive***********************/
+.navbar.show{
+    display: flex !important;
 }
 
-/************* Fin Info ******************/
+.sidebar.show, #colTopics.show{
+    display: block !important;
+}
+
+
+
+#desplegar{
+    cursor: pointer;
+    position: absolute;
+    z-index: 2;
+    width: 40px;
+    height: 40px;
+    background:#665dfe;
+    border-radius: 5px;
+    text-align: center;
+    line-height: 2.3;
+    top: 5px;
+    left: 12px;
+}
+#desplegar img{
+    width: 30px;
+}
+
+
+@media (min-width:931px){
+    #desplegar{
+        display: none;
+    }
+}
+
+/*Pantalla chica*/
+@media (max-width:930px){
+    #desplegar{
+        display: block !important;
+    }
+    #colTopics{
+        position: absolute;
+        left:380px;
+        z-index: 1;
+        background: white;
+        display: none;
+        border-right: 1px solid;
+        border-color: #e5e9f2;
+    }
+    .sidebar{
+        display: none;
+        min-width: 280px;
+        position: absolute;
+        left: 64px;
+        width: 320px !important;
+        z-index: 1;
+        background: white;
+        border-right: 1px solid #c5b5b5;
+        box-shadow: 1px 0 3px -2px #888;
+        
+    }
+    .navbar{
+        display: none;
+        position: absolute;
+        z-index: 1;
+    }
+    .boton span{
+        display: inline-block;
+        max-width: 100px;
+        white-space: nowrap;
+        overflow: hidden !important;
+        text-overflow: ellipsis;
+    }
+    #chat .tab-pane .h6{
+        margin-left: 45px;
+    }
+}
+
+/*Pantalla grande*/
+@media (max-width:1350px){
+    .sidebar{
+        width: 30%;
+    }
+}
+
