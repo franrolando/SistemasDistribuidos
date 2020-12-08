@@ -1,5 +1,7 @@
 const zmq = require('zeromq');
 const requester = zmq.socket('req');
+const init = require('./init.js');
+const net = require('net');
 let ID_CLIENTE;
 let idPeticion = 0;
 let brokers = [];
@@ -7,12 +9,8 @@ let COORDINADOR_IP;
 let COORDINADOR_PUERTO;
 let fechaSincro = new Date();
 let mensajes = [];
-const sincroNTP = require('./clientSincro-NTP.js');
-const init = require('./init.js');
-const net = require('net');
-const pub = require('./client-pub.js');
-const request = require('./client-request.js');
 
+/*
 var clientNTP = new net.Socket();
 clientNTP.connect(1337, '127.0.0.1', function () {
     console.log('Connected')
@@ -23,16 +21,9 @@ setInterval(() => {
         fechaSincro = new Date().getTime() + offset + delay;
     };
     sincroNTP.getOffSetDelayNTP(clientNTP, callback);
-}, 120000);
+}, 120000);*/
 
-setInterval(function () {
-    console.log('Envia heartbeat')
-    let obj = {
-        emisor: ID_CLIENTE,
-        fecha: fechaSincro
-    }
-    sock.send(['/heartbeat', obj]);
-}, 500)
+
 
 setTimeout(() => {
     ID_CLIENTE = init.getProp('ID_CLIENTE');
@@ -41,16 +32,15 @@ setTimeout(() => {
     requester.connect('tcp://' + COORDINADOR_IP + ':' + COORDINADOR_PUERTO);
     requester.on("message", function (reply) {
         reply = JSON.parse(reply);
-        console.log('Received reply: ');
+        console.log('Recibo respuesta Coordinador: ');
         console.log(reply)
         if (reply.exito == true) {
             switch (reply.accion) {
                 case (1):
-                    publicarMensajeReply(reply.resultados.datosBroker)
+                    publicarMensajeReply(reply.resultados.datosBroker, reply.idPeticion)
                     break;
                 case (2):
-                case (3):
-                    subscribirseTopicoReply(reply.resultados.datosBroker)
+                    subscribirseTopicoReply(reply.resultados.datosBroker, reply.idPeticion)
                     break;
                 default:
                     console.log('Default case')
@@ -60,10 +50,19 @@ setTimeout(() => {
         }
     });
     altaSubscripcion();
+    /*setInterval(function () {
+        console.log('Envia heartbeat')
+        let obj = {
+            emisor: ID_CLIENTE,
+            fecha: fechaSincro
+        }
+        let brokerHeart = getBrokerByTopico('/heartbeat', 'P')
+        brokerHeart.sock.send(['/heartbeat', obj]);
+    }, 2000)*/
     initPrompt();
 }, 1000);
 
-function altaSubscripcion(){
+function altaSubscripcion() {
     idPeticion++;
     let request = {
         idPeticion: idPeticion,
@@ -73,30 +72,28 @@ function altaSubscripcion(){
     requester.send(JSON.stringify(request));
 }
 
-function subscribirseTopicoReply(brokersReply) {
+function subscribirseTopicoReply(brokersReply, idPeticionRep) {
     brokersReply.forEach(brokerReply => {
         let sock;
-        let broker = getBrokerByTopico(brokerReply.topico, "S");
-        if (broker != null){
-            sock = broker.sock;
-        } else {
-            sock = zmq.socket('sub')
-            sock.connect('tcp://' + brokerReply.ip + ':' + brokerReply.puerto);
-            sock.on('message', function (topic, message) {
-                console.log('Recibio topico:', topic.toString(), 'con mensaje:', message.toString())
-            })
-            let brokerNuevo = {
-                sock: sock,
-                tipo: "S",
-                ip: brokerReply.ip,
-                puerto: brokerReply.puerto,
-                topicos: [brokerReply.topico]
+        if (idPeticionRep == 1 || (idPeticionRep != 1 && (brokerReply.topico != 'message/All' || brokerReply.topico != '/heartbeat'))) {
+            let broker = getBrokerByTopico(brokerReply.topico, "S");
+            if (broker != null) {
+                sock = broker.sock;
+            } else {
+                sock = zmq.socket('sub')
+                sock.connect('tcp://' + brokerReply.ip + ':' + brokerReply.puerto);
+                sock.on('message', function (topic, message) {
+                    if (message.emisor != ID_CLIENTE) {
+                        console.log('Recibio topico:', topic.toString(), 'con mensaje:')
+                        console.log(message.toString());
+                    }
+                })
             }
-            brokers.push(brokerNuevo);
+            sock.subscribe(brokerReply.topico);
         }
-        sock.subscribe(brokerReply.topico);
     });
 }
+
 function subscribirseTopico(topico) {
     let broker = getBrokerByTopico(topico, "S");
     if (broker != null) {
@@ -124,17 +121,17 @@ function publicarMensaje(topico, mensaje) {
     }
 }
 
-function publicarMensajeReply(brokersReply) {
+function publicarMensajeReply(brokersReply, idPeticion) {
     brokersReply.forEach(brokerReply => {
         let sock;
-        let mensaje = mensajes.find(mensaje => mensaje.idPeticion == brokersReply.idPeticion);
+        let mensaje = mensajes.find(mensaje => mensaje.idPeticion == idPeticion);
         if (brokers.some(broker => broker.ip == brokerReply.ip && broker.puerto == brokerReply.puerto)) {
             let broker = brokers.find(broker => broker => broker.ip == brokerReply.ip && broker.puerto == brokerReply.puerto);
             broker.topicos.push(brokerReply.topico);
             sock = broker.sock;
         } else {
             sock = zmq.socket('pub');
-            sock.connect('tcp://' + brokerReply.ip + ':' + brokerReply.puerto + '')
+            sock.connect('tcp://' + brokerReply.ip + ':' + brokerReply.puerto)
             let brokerNuevo = {
                 sock: sock,
                 tipo: "P",
@@ -144,9 +141,21 @@ function publicarMensajeReply(brokersReply) {
             }
             brokers.push(brokerNuevo);
         }
-        sock.send([mensaje.topico, mensaje.mensaje]);
+        setTimeout(() => {
+            sock.send([mensaje.topico, mensaje.mensaje]);
+        }, 500);
         mensajes.splice(mensaje, 1);
     });
+}
+
+function peticionGrupo(grupo) {
+    idPeticion++;
+    let request = {
+        idPeticion: idPeticion,
+        accion: 2,
+        topico: grupo
+    }
+    requester.send(JSON.stringify(request));
 }
 
 function guardaMensajeReqBroker(topico, mensaje) {
@@ -177,7 +186,7 @@ function getBrokerByTopico(topico, tipo) {
     let i = 0;
     let broker = null;
     while (i < brokers.length && broker == null) {
-        if (brokers[i].tipo == tipo && brokers[i].topicos.some(topicoBroker => { topicoBroker.toLowerCase() == topico.toLowerCase() })) {
+        if (brokers[i].tipo == tipo && brokers[i].topicos.some(topicoBroker => { return topicoBroker.toLowerCase() == topico.toLowerCase(); })) {
             broker = brokers[i];
         }
         i++;
@@ -212,7 +221,7 @@ function initPrompt() {
                         for (let i = 1; i < separado.length; i++) {
                             mensajeSpliteado.push(separado[i]);
                         }
-                        topico = 'message/all';   // no se cual deberia llevar este nombre, si topico o obj.emisor
+                        topico = 'message/All';   // no se cual deberia llevar este nombre, si topico o obj.emisor
                     } else {
                         for (let i = 3; i < separado.length; i++) {
                             mensajeSpliteado.push(separado[i]);
@@ -246,6 +255,8 @@ function initPrompt() {
                     break;
                 case '/group':
                     let grupo = separado[1];
+                    grupo = 'g_' + grupo;
+                    peticionGrupo(grupo);
                     break;
                 default:
                     console.log('Comando inexistente');

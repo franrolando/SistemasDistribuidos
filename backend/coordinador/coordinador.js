@@ -1,27 +1,27 @@
 var zmq = require('zeromq');
-let brokers = [
-
-]
-
-let broker = {
-  idBroker: 0,
-  ip: '127.0.0.1',
-  puerto: '5556',
-  topicos: []
-}
-brokers.push(broker);
-
-cargarBrokers(brokers);
-
-// Responde al cliente
+const init = require('./init.js');
 let reply = zmq.socket('rep');
-reply.bind('tcp://127.0.0.1:5555');
+let brokers = []
+// Responde al cliente
+
+setTimeout(() => {
+  cargarBrokers();
+  reply.bind('tcp://' + init.getProp('RESPCLIENTEIP') + ':' + init.getProp('RESPCLIENTEPUERTO'));
+  let newTopico = {
+    accion: 3,
+    topico: '/heartbeat'
+  }
+  asignarTopico(newTopico);
+  newTopico.topico = 'message/All'
+  asignarTopico(newTopico);
+}, 2000);
+
 
 
 reply.on('message', function (request) {
   request = JSON.parse(request)
   console.log(request);
-  response = {
+  let response = {
     exito: true,
     accion: request.accion,
     idPeticion: request.idPeticion,
@@ -33,13 +33,10 @@ reply.on('message', function (request) {
   }
   switch (request.accion) {
     case 1:
-      peticionPublicacion(request)
+      peticionPublicacion(request,response)
       break;
     case 2:
-      suscripcionTopico(request)
-      break;
-    case 3:
-      asignarTopico(request)
+      suscripcionTopico(request,response)
       break;
     case 7:
       peticionGrupo(request)
@@ -51,11 +48,11 @@ reply.on('message', function (request) {
         mensaje: 'Operacion inexistente'
       };
       console.log('Error')
-      reply.send(JSON.stringify(response));
     }
-    console.log('Response al cliente:');
-    console.log(response);
   }
+  console.log('Response al cliente:');
+  console.log(response);
+  reply.send(JSON.stringify(response));
 })
 
 function asignarTopico(request) {
@@ -66,65 +63,101 @@ function asignarTopico(request) {
     }
   })
   if (!existeTopico) {
-    let minCantTopicos = 999;
-    let idBrokerMin = 0;
-    brokers.forEach(broker => {
-      if (broker.topicos.length < minCantTopicos) {
-        minCantTopicos = broker.topicos.length
-        idBrokerMin = broker.idBroker
-      }
-    });
-    brokerMin = brokers.find(broker => broker.idBroker == idBrokerMin)
+    let brokerMin = getBrokerMinTopics();
     brokerMin.topicos.push(request.topico);
     // Request al broker
-    let requester = zmq.socket('req');
-    requester.connect("tcp://" + brokerMin.ip + ":" + brokerMin.puerto);
+    let requester = brokerMin.sock;
     requester.send(JSON.stringify(request));
-    requester.on("message", function (replyBroker) {
-      reply.send(JSON.stringify(replyBroker));
-    });
   } else {
     reply.send(JSON.stringify('Ya existe topico'));
   }
 }
 
-function peticionPublicacion(request) {
-
+function getBrokerMinTopics() {
+  let minCantTopicos = 999;
+  let idBrokerMin = 0;
+  brokers.forEach(broker => {
+    if (broker.topicos.length < minCantTopicos) {
+      minCantTopicos = broker.topicos.length
+      idBrokerMin = broker.idBroker
+    }
+  });
+  let brokerMin = brokers.find(broker => broker.idBroker == idBrokerMin);
+  return brokerMin;
 }
 
-function suscripcionTopico(request) {
+function peticionPublicacion(request,response) {
+  let brokerTopico = getBrokerByTopico(request.topico);
+  response.resultados = {
+    datosBroker: [{
+      topico: request.topico,
+      ip: brokerTopico.ip,
+      puerto: brokerTopico.puertoPub
+    }]
+  }
+}
+
+function suscripcionTopico(request,response) {
   let i = 0;
-  let brokerTopico = null;
-  while (i < brokers.length && brokerTopico == null) {
-    if (brokers[i].topicos.some(topico => topico == request.topico)) {
-      brokerTopico = brokers[i];
-    } else {
-      i++
-    }
+  let brokerAsignado = getBrokerMinTopics();
+  let brokerAll = getBrokerByTopico('message/All');
+  let brokerHeart = getBrokerByTopico('/heartbeat');
+  request.topico = 'message/'+request.topico;
+  brokerAsignado.topicos.push(request.topico);
+  brokerAsignado.sock.send(JSON.stringify(request));
+  response.resultados = {
+    datosBroker: [{
+      topico: request.topico,
+      ip: brokerAsignado.ip,
+      puerto: brokerAsignado.puertoSub
+    }, {
+      topico: 'message/All',
+      ip: brokerAll.ip,
+      puerto: brokerAll.puertoSub
+    },
+    {
+      topico: '/heartbeat',
+      ip: brokerHeart.ip,
+      puerto: brokerHeart.puertoSub
+    }]
   }
-  if (brokerTopico == null) {
-    response.exito = false;
-    response.error = {
-      codigo: 1,
-      mensaje: 'Topico inexistente'
-    };
-  } else {
-    response.resultados = {
-      datosBroker : {
-        topico: request.topico,
-        ip: brokerTopico.ip,
-        puerto: brokerTopico.puerto,
-      }
-    }
-  }
-  reply.send(JSON.stringify(response));
 }
- 
 
-  function peticionGrupo(request) {
-
+function getBrokerByTopico(topico) {
+  let i = 0;
+  let broker = null;
+  while (i < brokers.length && broker == null) {
+    if (brokers[i].topicos.some(topicoBroker => {
+       return topicoBroker.toLowerCase() === topico.toLowerCase() ;
+      })) {
+      broker = brokers[i];
+    }
+    i++;
   }
+  return broker;
+}
 
-  function cargarBrokers(request) {
 
+function peticionGrupo(request,response) {
+
+}
+
+function cargarBrokers() {
+  const cantBrokers = init.getProp('CANTBROKERS');
+  for (let i = 1; i <= cantBrokers; i++) {
+    let ip = init.getProp('IPBROKER' + i);
+    let puerto = init.getProp('PUERTOBROK' + i);
+    let requester = zmq.socket('req');
+    requester.connect("tcp://" + ip + ":" + puerto);
+    let broker = {
+      idBroker: i,
+      sock: requester,
+      ip: ip,
+      puerto: puerto,
+      puertoSub: init.getProp('PUERTOBROK' + i + 'SUB'),
+      puertoPub: init.getProp('PUERTOBROK' + i + 'PUB'),
+      topicos: []
+    }
+    brokers.push(broker);
   }
+}

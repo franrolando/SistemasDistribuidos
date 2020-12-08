@@ -6,6 +6,8 @@ const subSocket = zmq.socket('xsub'),
 
 const init = require('./init.js');
 
+let COORDINADOR_IP;
+let COORDINADOR_PUERTO;
 let IP_RECIBE;
 let PUERTO_RECIBE;
 let IP_ENVIA;
@@ -13,6 +15,8 @@ let PUERTO_ENVIA;
 let ID_BROKER;
 let tiempoVidaMensajes;
 let maxMensajes;
+let ipRest;
+let puertoResp;
 setTimeout(() => {
 	ID_BROKER = init.getProp('ID_BROKER');
 	COORDINADOR_IP = init.getProp('COORDINADOR_IP');
@@ -23,6 +27,9 @@ setTimeout(() => {
 	PUERTO_ENVIA = init.getProp('PUERTO_ENVIA');
 	tiempoVidaMensajes = init.getProp('TIEMPOVIDAMENSAJES');
 	maxMensajes = init.getProp('CANTIDADMENSAJES');
+	ipRest = init.getProp('IPRESP');
+	puertoResp = init.getProp('PUERTORESP');
+	listenReply();
 	setInterval(() => {
 		limpiarMensajes();
 	}, tiempoVidaMensajes);
@@ -33,39 +40,27 @@ setTimeout(() => {
 let topics = [];
 let colaMensajes = [];
 
-let topico = {
-	nombre: 'nombreTopico',
-	colaMensajes: [
-
-	]
-}
-
-let mensaje = {
-	emisor: 'Juan pedro',
-	mensaje: 'Mensaje de prueba',
-	fecha: 'hoy xdxd'
-}
-
-topico.colaMensajes.push(mensaje)
-topics.push(topico)
-
 subSocket.on('message', function (topic, message) {
-	let topico = colaMensajes.find(topico => topico.nombre == topic);
-	if (topico.colaMensajes.length == maxMensajes) {
-		let mensajeViejo = topico.colaMensajes[0];
-		topico.colaMensajes.forEach(mensaje => {
-			if (mensaje.fecha < mensajeViejo.fecha){
-				mensajeViejo = mensaje;
-			}
-		});
-		let indiceViejo = topico.colaMensajes.indexOf(mensajeViejo);
-		topico.colaMensajes.splice(indiceViejo,1);
+	console.log('LLego un mensaje')
+	if (!topic.toString().startsWith('message/g_')){
+		let topico = topics.find(topico => topico.nombre == topic);
+		if (topico.colaMensajes.length == maxMensajes) {
+			let mensajeViejo = topico.colaMensajes[0];
+			topico.colaMensajes.forEach(mensaje => {
+				if (mensaje.fecha < mensajeViejo.fecha){
+					mensajeViejo = mensaje;
+				}
+			});
+			let indiceViejo = topico.colaMensajes.indexOf(mensajeViejo);
+			topico.colaMensajes.splice(indiceViejo,1);
+		}
+		topico.colaMensajes.push(message);
 	}
-	topico.colaMensajes.push(message);
 	pubSocket.send([topic, message])
 })
 
 pubSocket.on('message', function (topic) {
+	console.log('Se subscribieron a '+topic);
 	subSocket.send(topic)
 })
 
@@ -82,68 +77,78 @@ function limpiarMensajes(){
 }
 /***************************************************************************************************************************************/
 
-var responder = zmq.socket('rep');
-responder.bind('tcp://127.0.0.1:5556');
-responder.on('message', function (request) {
-	request = JSON.parse(request);
-	console.log("Received request: [", request, "]");
-	let response;
-	switch (request.accion) {
-		case (1):
-
-		case (2):
-			break;
-		case (3):
-			topics.push(request.topico)
-			response = {
-				resultados: {}
-			};
-			break;
-		case (4):
-			response = {
-				exito: true,
-				accion: request.accion,
-				accion: request.idPeticion,
-				resultados: {
-					listaTopicos: getTopicos()
-				},
-				error: {
-					codigo: '',
-					mensaje: ''
+function listenReply(){
+	var responder = zmq.socket('rep');
+	responder.bind('tcp://'+ipRest+':'+puertoResp);
+	responder.on('message', function (request) {
+		request = JSON.parse(request);
+		console.log("Received request: [", request, "]");
+		let response;
+		switch (request.accion) {
+			case (1):
+	
+			case (2):
+			case (3):
+				if (!topics.some(topico => topico.nombre == request.topico)){
+					let topico = {
+						nombre: request.topico,
+						colaMensajes: [
+					
+						]
+					}
+					topics.push(topico)
 				}
-			}
-			break;
-		case (5):
-			response = {
-				exito: true,
-				accion: request.accion,
-				accion: request.idPeticion,
-				resultados: {
-					mensajes: getMensajes(request.topico)
-				},
-				error: {
-					codigo: '',
-					mensaje: ''
+				response = {
+					resultados: {}
+				};
+				console.log(topics);
+				break;
+			case (4):
+				response = {
+					exito: true,
+					accion: request.accion,
+					accion: request.idPeticion,
+					resultados: {
+						listaTopicos: getTopicos()
+					},
+					error: {
+						codigo: '',
+						mensaje: ''
+					}
 				}
-			}
-			break;
-		case (6):
-			deleteMensajes(request.topico)
-			response = {
-				exito: true,
-				accion: request.accion,
-				accion: request.idPeticion,
-				resultados: {},
-				error: {
-					codigo: '',
-					mensaje: ''
+				break;
+			case (5):
+				response = {
+					exito: true,
+					accion: request.accion,
+					accion: request.idPeticion,
+					resultados: {
+						mensajes: getMensajes(request.topico)
+					},
+					error: {
+						codigo: '',
+						mensaje: ''
+					}
 				}
-			}
-			break;
-		default:
-	}
-	responder.send(JSON.stringify(response));
-});
+				break;
+			case (6):
+				deleteMensajes(request.topico)
+				response = {
+					exito: true,
+					accion: request.accion,
+					accion: request.idPeticion,
+					resultados: {},
+					error: {
+						codigo: '',
+						mensaje: ''
+					}
+				}
+				break;
+			default:
+		}
+		responder.send(JSON.stringify(response));
+	});
+}
 
 function getTopicos() {
 	let topicos = []
