@@ -38,9 +38,6 @@ reply.on('message', function (request) {
     case 2:
       suscripcionTopico(request,response)
       break;
-    case 7:
-      peticionGrupo(request)
-      break;
     default: {
       response.exito = false;
       response.error = {
@@ -135,11 +132,6 @@ function getBrokerByTopico(topico) {
     i++;
   }
   return broker;
-}
-
-
-function peticionGrupo(request,response) {
-
 }
 
 function cargarBrokers() {

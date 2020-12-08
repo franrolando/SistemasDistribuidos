@@ -115,7 +115,7 @@ function publicarMensaje(topico, mensaje) {
     idPeticion++;
     let broker = getBrokerByTopico(topico, "P");
     if (broker != null) {
-        broker.sock.send([topico, mensaje])
+        broker.sock.send([topico, JSON.stringify(mensaje)])
     } else {
         guardaMensajeReqBroker(topico, mensaje);
     }

@@ -2,27 +2,24 @@ const express = require('express')
 const cors = require('cors')
 const app = express()
 const port = 4500
+var zmq = require('zeromq');
+const init = require('./init.js');
+let cantidadBrokers;
+let brokers = [];
 
 app.use(cors())
-let idPeticion = 0;
-let brokers = []
-let broker = {
-    idBroker: 1,
-    ip: 'localhost',
-    puerto: '5556'
-}
-brokers.push(broker);
-var zmq = require('zeromq');
-var requester = zmq.socket('req');
-var idCliente = 1;
-let topicos = ['heartbeat', 'messageAll', 'message/' + idCliente];
 
-idPeticion = 1;
-let request = {
-    idPeticion: idPeticion++,
-    accion: 2,
-    topico: 'prueba'
-}
+setTimeout(() => {
+    cantidadBrokers = init.getProp('CANTBROKERS');
+    cargarBrokers();
+}, 1000);
+
+
+idPeticion = 0;
+
+app.get('/brokers', (req, res) => {
+    res.send(JSON.stringify(brokers.length));
+})
 
 app.get('/broker/*/topics', (req, res) => {
     let broker = brokers.find(broker => broker.idBroker == req.params[0]);
@@ -31,11 +28,14 @@ app.get('/broker/*/topics', (req, res) => {
         accion: 4,
         topico: 'nombreTopico'
     }
-    requester.connect('tcp://' + broker.ip + ':' + broker.puerto);
-    requester.send(JSON.stringify(request));
-    requester.on('message', function (reply) {
-        res.send(reply);
-    })
+    broker.sock.send(JSON.stringify(request));
+        broker.sock.on('message', function (reply) {
+            reply = JSON.parse(reply)
+            if (request.idPeticion == reply.idPeticion){
+                res.send(JSON.stringify(reply));
+            }
+        })
+    
 })
 
 app.get('/broker/*/topics/*', (req, res) => {
@@ -45,11 +45,14 @@ app.get('/broker/*/topics/*', (req, res) => {
         accion: 5,
         topico: req.params[1]
     }
-    requester.connect('tcp://' + broker.ip + ':' + broker.puerto);
-    requester.send(JSON.stringify(request));
-    requester.on('message', function (reply) {
-        res.send(reply);
-    })
+    broker.sock.send(JSON.stringify(request));
+        broker.sock.on('message', function (reply) {
+            reply = JSON.parse(reply)
+            if (request.idPeticion == reply.idPeticion){
+                res.send(JSON.stringify(reply));
+            }
+        })
+    
 })
 
 app.delete('/broker/*/topics/*', (req, res) => {
@@ -59,13 +62,35 @@ app.delete('/broker/*/topics/*', (req, res) => {
         accion: 6,
         topico: req.params[1]
     }
-    requester.connect('tcp://' + broker.ip + ':' + broker.puerto);
-    requester.send(JSON.stringify(request));
-    requester.on('message', function (reply) {
-        res.send(reply);
-    })
+    broker.sock.send(JSON.stringify(request));
+
+        broker.sock.on('message', function (reply) {
+            reply = JSON.parse(reply)
+            if (request.idPeticion == reply.idPeticion){
+                res.send(JSON.stringify(reply));
+            }
+        })
+    
 })
 
 app.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}`)
 })
+
+function cargarBrokers() {
+    const cantBrokers = init.getProp('CANTBROKERS');
+    for (let i = 1; i <= cantBrokers; i++) {
+      let ip = init.getProp('IPBROKER' + i);
+      let puerto = init.getProp('PUERTOBROK' + i);
+      let requester = zmq.socket('req');
+      requester.connect("tcp://" + ip + ":" + puerto);
+      let broker = {
+        idBroker: i,
+        sock: requester,
+        ip: ip,
+        puerto: puerto,
+        topicos: []
+      }
+      brokers.push(broker);
+    }
+  }

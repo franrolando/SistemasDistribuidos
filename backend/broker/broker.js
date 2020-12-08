@@ -107,7 +107,7 @@ function listenReply(){
 				response = {
 					exito: true,
 					accion: request.accion,
-					accion: request.idPeticion,
+					idPeticion: request.idPeticion,
 					resultados: {
 						listaTopicos: getTopicos()
 					},
@@ -121,7 +121,7 @@ function listenReply(){
 				response = {
 					exito: true,
 					accion: request.accion,
-					accion: request.idPeticion,
+					idPeticion: request.idPeticion,
 					resultados: {
 						mensajes: getMensajes(request.topico)
 					},
@@ -136,7 +136,7 @@ function listenReply(){
 				response = {
 					exito: true,
 					accion: request.accion,
-					accion: request.idPeticion,
+					idPeticion: request.idPeticion,
 					resultados: {},
 					error: {
 						codigo: '',
@@ -153,7 +153,7 @@ function listenReply(){
 function getTopicos() {
 	let topicos = []
 	topics.forEach(topico => {
-		topicos.push(topico.topico)
+		topicos.push(topico.nombre)
 	})
 	return topicos;
 }
@@ -162,7 +162,7 @@ function getMensajes(nombreTopico) {
 	let i = 0;
 	let topico = null;
 	while (i < topics.length && topico == null) {
-		if (topics[i].topico == nombreTopico) {
+		if (topics[i].nombre == nombreTopico) {
 			topico = topics[i];
 		}
 		i++;
