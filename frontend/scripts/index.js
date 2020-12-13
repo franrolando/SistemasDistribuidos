@@ -78,7 +78,6 @@ function getTopicos(idBroker) {
   // respuesta
   let callback = (data) => {
     let respuesta = JSON.parse(data);
-    console.log(respuesta);
     if (respuesta.exito) {
       insertarTopicos(idBroker, respuesta.resultados.listaTopicos);
     }
@@ -108,7 +107,7 @@ function insertarTopicos(idBroker, listaTopicos) {
 function addTopic(idBroker, idTopic) {
   // botón del topico
   let codTopic = ` 
-  <a class="nav-link boton" data-toggle="list" onclick="getMensajes('${idBroker}','${idTopic}')" href="#msg-${idTopic}-${idBroker}" role="tab"> 
+  <a class="nav-link boton" data-toggle="list" onclick="getMensajes('${idBroker}','${idTopic}')" href="#msg-${idTopic.replace('/','_')}-${idBroker}" role="tab"> 
     <div class="media">
         <div class="mt-0 idTopico">${idTopic}</div>
     </div>
@@ -119,7 +118,7 @@ function addTopic(idBroker, idTopic) {
 
   // pestaña de mensajes para idBroker,idTopic
   let codMensajes = `
-  <div class="tab-pane fade show"  id="msg-${idTopic}-${idBroker}" role="tabpanel">
+  <div class="tab-pane fade show"  id="msg-${idTopic.replace('/','_')}-${idBroker}" role="tabpanel">
       <div style="text-align: left;text-transform: capitalize;" class="h6">${idBroker} > ${idTopic}</div>
       <hr>
       <div class="chat-content  demoScroll sc2">
@@ -141,11 +140,7 @@ function getMensajes(idBroker, idTopic) {
   let url = 'http://' + IP + ':' + PORT + '/broker/' + idBroker + '/topics/' + idTopic;
   // respuesta
   let callback = (data) => {
-    let respuesta = JSON.parse(data, (k,v) => {
-      console.log('Clave :'+k)
-      console.log('Valor :'+v)
-    });
-    console.log(respuesta)
+    let respuesta = JSON.parse(data);
     if (respuesta.exito) {
       insertarMensajes(idBroker, idTopic, respuesta.resultados.mensajes);
     }
@@ -164,10 +159,9 @@ function conexionApi(tipo, url, callback) {
 
 
 function insertarMensajes(idBroker, idTopic, listaMensajes) {
-  let chat = document.getElementById('msg-' + idTopic + '-' + idBroker).getElementsByClassName('chat-content')[0];
+  let chat = document.getElementById('msg-' + idTopic.replace('/','_') + '-' + idBroker).getElementsByClassName('chat-content')[0];
   chat.innerHTML = '';
   $("#borrarMensajes button").hide();
-
 
   listaMensajes.forEach(m => {
     addMensaje(idBroker, idTopic, m);
@@ -183,7 +177,7 @@ function addMensaje(idBroker, idTopic, msg) {
   </div>
   <hr>
   `;
-  let chat = document.getElementById('msg-' + idTopic + '-' + idBroker).getElementsByClassName('chat-content')[0];
+  let chat = document.getElementById('msg-' + idTopic.replace('/','_') + '-' + idBroker).getElementsByClassName('chat-content')[0];
   if (chat != null) {
     chat.innerHTML += codMensaje;
     $("#borrarMensajes button").show();
@@ -203,6 +197,7 @@ $("#borrarMensajes .send button").click(function () {
 
   let idBroker = res[2];
   let idTopic = res[1];
+  idTopic = idTopic.replace('_', '/')
 
   // DELETE   /broker/123/topics/miTopico1, donde 123 es el id del broker y miTopico1 es el tópico.
   let url = 'http://' + IP + ':' + PORT + '/broker/' + idBroker + '/topics/' + idTopic;
@@ -222,7 +217,7 @@ $("#borrarMensajes .send button").click(function () {
 
 
 function eliminarMensajes(idBroker, idTopic) {
-  let chat = document.getElementById('msg-' + idTopic + '-' + idBroker).getElementsByClassName('chat-content')[0];
+  let chat = document.getElementById('msg-' + idTopic.replace('/', '_') + '-' + idBroker).getElementsByClassName('chat-content')[0];
   chat.innerHTML = '<div class="font-weight-light text-muted text-center">no hay mensajes</div>';
 }
 

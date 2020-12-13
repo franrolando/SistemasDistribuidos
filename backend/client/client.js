@@ -85,7 +85,7 @@ function subscribirseTopicoReply(brokersReply, idPeticionRep) {
                 sock.on('message', function (topic, message) {
                     if (message.emisor != ID_CLIENTE) {
                         console.log('Recibio topico:', topic.toString(), 'con mensaje:')
-                        console.log(message.toString());
+                        console.log(JSON.parse(message.toString()));
                     }
                 })
             }

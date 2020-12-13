@@ -41,7 +41,10 @@ let topics = [];
 let colaMensajes = [];
 
 subSocket.on('message', function (topic, message) {
+	message = JSON.parse(message)
 	console.log('LLego un mensaje')
+	console.log(topic.toString())
+	console.log(message)
 	if (!topic.toString().startsWith('message/g_')){
 		let topico = topics.find(topico => topico.nombre == topic);
 		if (topico.colaMensajes.length == maxMensajes) {
@@ -56,12 +59,20 @@ subSocket.on('message', function (topic, message) {
 		}
 		topico.colaMensajes.push(message);
 	}
-	pubSocket.send([topic, message])
+	pubSocket.send([topic, JSON.stringify(message)])
 })
 
 pubSocket.on('message', function (topic) {
-	console.log('Se subscribieron a '+topic);
 	subSocket.send(topic)
+	topic = topic.slice(1);
+	console.log('Se subscribieron a '+topic);
+	let topico = topics.find(topico => topico.nombre == topic);
+	console.log(topics);
+	
+	topico.colaMensajes.forEach(mensaje => {
+		console.log('Enviando '+mensaje);
+		pubSocket.send([topic, JSON.stringify(mensaje)]);
+	})
 })
 
 function limpiarMensajes(){
@@ -174,7 +185,7 @@ function deleteMensajes(nombreTopico) {
 	let i = 0;
 	let topico = null;
 	while (i < topics.length && topico == null) {
-		if (topics[i].topico == nombreTopico) {
+		if (topics[i].nombre == nombreTopico) {
 			topico = topics[i];
 		}
 		i++;

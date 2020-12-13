@@ -66,6 +66,7 @@ app.delete('/broker/*/topics/*', (req, res) => {
 
         broker.sock.on('message', function (reply) {
             reply = JSON.parse(reply)
+            console.log(reply)
             if (request.idPeticion == reply.idPeticion){
                 res.send(JSON.stringify(reply));
             }
