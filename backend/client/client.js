@@ -142,7 +142,7 @@ function publicarMensajeReply(brokersReply, idPeticion) {
             brokers.push(brokerNuevo);
         }
         setTimeout(() => {
-            sock.send([mensaje.topico, mensaje.mensaje]);
+            sock.send([mensaje.topico, JSON.stringify(mensaje.mensaje)]);
         }, 500);
         mensajes.splice(mensaje, 1);
     });
