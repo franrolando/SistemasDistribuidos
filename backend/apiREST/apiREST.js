@@ -75,7 +75,7 @@ app.delete('/broker/*/topics/*', (req, res) => {
 })
 
 app.listen(port, () => {
-    console.log(`Example app listening at http://localhost:${port}`)
+    console.log(`API REST iniciada: http://localhost:${port}`)
 })
 
 function cargarBrokers() {

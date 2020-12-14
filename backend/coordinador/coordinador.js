@@ -85,12 +85,23 @@ function getBrokerMinTopics() {
 
 function peticionPublicacion(request,response) {
   let brokerTopico = getBrokerByTopico(request.topico);
-  response.resultados = {
-    datosBroker: [{
-      topico: request.topico,
-      ip: brokerTopico.ip,
-      puerto: brokerTopico.puertoPub
-    }]
+  
+  if(brokerTopico!=null)
+  {
+    response.resultados = {
+      datosBroker: [{
+        topico: request.topico,
+        ip: brokerTopico.ip,
+        puerto: brokerTopico.puertoPub
+      }]
+    }
+  }
+  else{
+    response.exito = false;
+    response.error = {
+      codigo: 1,
+      mensaje: 'error, topico inexistente'
+    };
   }
 }
 

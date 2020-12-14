@@ -33,8 +33,17 @@ setTimeout(() => {
 	setInterval(() => {
 		limpiarMensajes();
 	}, tiempoVidaMensajes);
+	const net = require('net');
+	var server = net.createServer(function (socket) {
+		socket.on('data', function (data) {
+			socket.write('Connected');
+		})
+
+	});
+	server.listen(init.getProp('PUERTONTP'), '127.0.0.1');
 	subSocket.bindSync('tcp://' + IP_ENVIA + ':' + PUERTO_ENVIA + '')
 	pubSocket.bindSync('tcp://' + IP_RECIBE + ':' + PUERTO_RECIBE + '')
+
 }, 1000);
 
 let topics = [];
@@ -45,17 +54,17 @@ subSocket.on('message', function (topic, message) {
 	console.log('LLego un mensaje')
 	console.log(topic.toString())
 	console.log(message)
-	if (!topic.toString().startsWith('message/g_')){
+	if (!topic.toString().startsWith('message/g_')) {
 		let topico = topics.find(topico => topico.nombre == topic);
 		if (topico.colaMensajes.length == maxMensajes) {
 			let mensajeViejo = topico.colaMensajes[0];
 			topico.colaMensajes.forEach(mensaje => {
-				if (mensaje.fecha < mensajeViejo.fecha){
+				if (mensaje.fecha < mensajeViejo.fecha) {
 					mensajeViejo = mensaje;
 				}
 			});
 			let indiceViejo = topico.colaMensajes.indexOf(mensajeViejo);
-			topico.colaMensajes.splice(indiceViejo,1);
+			topico.colaMensajes.splice(indiceViejo, 1);
 		}
 		topico.colaMensajes.push(message);
 	}
@@ -65,17 +74,17 @@ subSocket.on('message', function (topic, message) {
 pubSocket.on('message', function (topic) {
 	subSocket.send(topic)
 	topic = topic.slice(1);
-	console.log('Se subscribieron a '+topic);
+	console.log('Se subscribieron a ' + topic);
 	let topico = topics.find(topico => topico.nombre == topic);
 	console.log(topics);
-	
+
 	topico.colaMensajes.forEach(mensaje => {
-		console.log('Enviando '+mensaje);
+		console.log('Enviando ' + mensaje);
 		pubSocket.send([topic, JSON.stringify(mensaje)]);
 	})
 })
 
-function limpiarMensajes(){
+function limpiarMensajes() {
 	colaMensajes.forEach(topico => {
 		let newCola = [];
 		topico.colaMensajes.forEach(mensaje => {
@@ -88,9 +97,9 @@ function limpiarMensajes(){
 }
 /***************************************************************************************************************************************/
 
-function listenReply(){
+function listenReply() {
 	var responder = zmq.socket('rep');
-	responder.bind('tcp://'+ipRest+':'+puertoResp);
+	responder.bind('tcp://' + ipRest + ':' + puertoResp);
 	responder.on('message', function (request) {
 		request = JSON.parse(request);
 		console.log("Received request: [", request, "]");
@@ -106,11 +115,11 @@ function listenReply(){
 			case (2):
 			// Asignar topico
 			case (3):
-				if (!topics.some(topico => topico.nombre == request.topico)){
+				if (!topics.some(topico => topico.nombre == request.topico)) {
 					let topico = {
 						nombre: request.topico,
 						colaMensajes: [
-					
+
 						]
 					}
 					topics.push(topico)
@@ -171,7 +180,9 @@ function listenReply(){
 function getTopicos() {
 	let topicos = []
 	topics.forEach(topico => {
-		topicos.push(topico.nombre)
+		if (!topico.nombre.startsWith('message/g_')) {
+			topicos.push(topico.nombre)
+		}
 	})
 	return topicos;
 }

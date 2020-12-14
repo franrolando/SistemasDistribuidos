@@ -2,6 +2,7 @@ const zmq = require('zeromq');
 const requester = zmq.socket('req');
 const init = require('./init.js');
 const net = require('net');
+const { off } = require('process');
 let ID_CLIENTE;
 let idPeticion = 0;
 let brokers = [];
@@ -10,30 +11,30 @@ let COORDINADOR_PUERTO;
 let fechaSincro = new Date();
 let mensajes = [];
 
-/*
-var clientNTP = new net.Socket();
-clientNTP.connect(1337, '127.0.0.1', function () {
-    console.log('Connected')
-});
-
-setInterval(() => {
-    let callback = (offset, delay) => {
-        fechaSincro = new Date().getTime() + offset + delay;
-    };
-    sincroNTP.getOffSetDelayNTP(clientNTP, callback);
-}, 120000);*/
+let offset = 0;
+let delay = 0;
 
 
 
 setTimeout(() => {
     ID_CLIENTE = init.getProp('ID_CLIENTE');
+    
+    console.log("------ CLIENTE: "+ID_CLIENTE+" -----");
+    console.log("\n comandos: \n 1. enviar -u idUsuario mensaje \n 2. /group nombreGrupo (unirse a un grupo) \n 3. enviar -g nombreGrupo mensaje")
+    console.log("------------------------\n\n Chat: \n");
+
+
     COORDINADOR_IP = init.getProp('COORDINADOR_IP');
     COORDINADOR_PUERTO = init.getProp('COORDINADOR_PUERTO');
     requester.connect('tcp://' + COORDINADOR_IP + ':' + COORDINADOR_PUERTO);
     requester.on("message", function (reply) {
         reply = JSON.parse(reply);
-        console.log('Recibo respuesta Coordinador: ');
+        /*
+        console.log("------------------------");
+        console.log('Respuesta Coordinador: ');
         console.log(reply)
+        console.log("------------------------\n\n Chat: \n");
+        */
         if (reply.exito == true) {
             switch (reply.accion) {
                 case (1):
@@ -51,16 +52,29 @@ setTimeout(() => {
     });
     altaSubscripcion();
     setInterval(function () {
-        console.log('Envia heartbeat')
+        //console.log('Envia heartbeat')
         let obj = {
             emisor: ID_CLIENTE,
             fecha: fechaSincro
         }
         let brokerHeart = getBrokerByTopico('/heartbeat', 'P')
-        if (brokerHeart.sock != undefined){
+        if (brokerHeart != null){
             brokerHeart.sock.send(['/heartbeat', obj]);
         }
-    }, 10000)
+    }, 10000);
+
+    var clientNTP = new net.Socket();
+    clientNTP.connect(1337, '127.0.0.1', function () {
+    });
+    
+    setInterval(() => {
+        let callback = (off, del) => {
+            offset = off;
+            delay = del;
+        };
+        sincroNTP.getOffSetDelayNTP(clientNTP, callback);
+    }, 120000);
+
     initPrompt();
 }, 1000);
 
@@ -86,8 +100,14 @@ function subscribirseTopicoReply(brokersReply, idPeticionRep) {
                 sock.connect('tcp://' + brokerReply.ip + ':' + brokerReply.puerto);
                 sock.on('message', function (topic, message) {
                     if (message.emisor != ID_CLIENTE) {
-                        console.log('Recibio topico:', topic.toString(), 'con mensaje:')
-                        console.log(JSON.parse(message.toString()));
+                        let msg = JSON.parse(message.toString());
+                        
+                        let fecha = Date.parse(msg.fecha);
+                        let d = new Date(fecha);
+                        
+                        console.log("------------------------\ntopic: "+topic.toString()+" ("+d.toLocaleString()+")");
+                        console.log("cliente "+msg.emisor+": "+msg.mensaje+"\n------------------------\n");
+                        //console.log(JSON.parse(message.toString()));
                     }
                 })
             }
@@ -252,7 +272,7 @@ function initPrompt() {
                     console.log(mensajeCompleto);
                     obj.emisor = ID_CLIENTE;
                     obj.mensaje = mensaje;
-                    obj.fecha = fechaSincro;
+                    obj.fecha = new Date(new Date().getTime() + offset + delay);
                     publicarMensaje(topico, obj);
                     break;
                 case '/group':
