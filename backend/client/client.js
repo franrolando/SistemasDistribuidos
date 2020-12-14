@@ -50,15 +50,17 @@ setTimeout(() => {
         }
     });
     altaSubscripcion();
-    /*setInterval(function () {
+    setInterval(function () {
         console.log('Envia heartbeat')
         let obj = {
             emisor: ID_CLIENTE,
             fecha: fechaSincro
         }
         let brokerHeart = getBrokerByTopico('/heartbeat', 'P')
-        brokerHeart.sock.send(['/heartbeat', obj]);
-    }, 2000)*/
+        if (brokerHeart.sock != undefined){
+            brokerHeart.sock.send(['/heartbeat', obj]);
+        }
+    }, 10000)
     initPrompt();
 }, 1000);
 

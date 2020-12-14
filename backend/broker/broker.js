@@ -96,9 +96,15 @@ function listenReply(){
 		console.log("Received request: [", request, "]");
 		let response;
 		switch (request.accion) {
+			// Solicitud Publicacion
 			case (1):
-	
+				response = {
+					resultados: {}
+				};
+				break;
+			// Solicitud susc alta
 			case (2):
+			// Asignar topico
 			case (3):
 				if (!topics.some(topico => topico.nombre == request.topico)){
 					let topico = {
@@ -114,6 +120,7 @@ function listenReply(){
 				};
 				console.log(topics);
 				break;
+			// Solicitud Publicacion
 			case (4):
 				response = {
 					exito: true,
