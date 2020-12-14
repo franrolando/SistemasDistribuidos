@@ -32,7 +32,6 @@ const PORT = 4500;
 
 
 // lista de brokers
-let brokers = ['broker1', 'broker2', 'broker3'];
 
 conexionApi('GET','/brokers',(data) => {
   let cantBrokers = JSON.parse(data);
@@ -40,6 +39,10 @@ conexionApi('GET','/brokers',(data) => {
     addBroker(i);
   }
 })
+
+function conexionApi(tipo, url, callback) {
+  httpAsync(tipo, 'http://' + IP + ':' + PORT +url, callback);
+}
 
 
 function addBroker(id) {
@@ -119,9 +122,10 @@ function addTopic(idBroker, idTopic) {
   // pestaña de mensajes para idBroker,idTopic
   let codMensajes = `
   <div class="tab-pane fade show"  id="msg-${idTopic.replace('/','_')}-${idBroker}" role="tabpanel">
-      <div style="text-align: left;text-transform: capitalize;" class="h6">${idBroker} > ${idTopic}</div>
+      <div style="text-align: left;text-transform: capitalize;" class="h6">Broker ${idBroker} > ${idTopic}</div>
       <hr>
       <div class="chat-content  demoScroll sc2">
+        <div class="font-weight-light text-muted text-center">no hay mensajes</div>
         <div class="chatMensajes"></div>
       </div>
   </div>
@@ -152,27 +156,29 @@ function getMensajes(idBroker, idTopic) {
   httpAsync("GET", url, callback);
 }
 
-function conexionApi(tipo, url, callback) {
-  httpAsync(tipo, 'http://' + IP + ':' + PORT +url, callback);
-}
 
 
 
 function insertarMensajes(idBroker, idTopic, listaMensajes) {
   let chat = document.getElementById('msg-' + idTopic.replace('/','_') + '-' + idBroker).getElementsByClassName('chat-content')[0];
-  chat.innerHTML = '';
+  chat.innerHTML = '<div class="font-weight-light text-muted text-center">no hay mensajes</div>';
   $("#borrarMensajes button").hide();
-
-  listaMensajes.forEach(m => {
-    addMensaje(idBroker, idTopic, m);
-  });
+  if(listaMensajes.length >0){
+    chat.innerHTML = '';
+    listaMensajes.forEach(m => {
+      addMensaje(idBroker, idTopic, m);
+    });
+  }
 }
 
 
 function addMensaje(idBroker, idTopic, msg) {
+  let fecha = Date.parse(msg.fecha);
+  let d = new Date(fecha);
+
   let codMensaje = `
   <div class="rec">
-    <div class="emisor h6">${msg.emisor} <span class="fecha">${msg.fecha}</span></div>
+    <div class="emisor h6">Cliente ${msg.emisor} : <span class="fecha">${d.toLocaleString()}</span></div>
     <div class="cuerpoMensaje">${msg.mensaje}</div>
   </div>
   <hr>
