@@ -10,7 +10,6 @@ let COORDINADOR_IP;
 let COORDINADOR_PUERTO;
 let fechaSincro = new Date();
 let mensajes = [];
-
 let offset = 0;
 let delay = 0;
 
@@ -57,9 +56,9 @@ setTimeout(() => {
             emisor: ID_CLIENTE,
             fecha: fechaSincro
         }
-        let brokerHeart = getBrokerByTopico('/heartbeat', 'P')
+        let brokerHeart = getBrokerByTopico('heartbeat', 'P')
         if (brokerHeart != null){
-            brokerHeart.sock.send(['/heartbeat', obj]);
+            brokerHeart.sock.send(['heartbeat', obj]);
         }
     }, 10000);
 
@@ -91,7 +90,7 @@ function altaSubscripcion() {
 function subscribirseTopicoReply(brokersReply, idPeticionRep) {
     brokersReply.forEach(brokerReply => {
         let sock;
-        if (idPeticionRep == 1 || (idPeticionRep != 1 && (brokerReply.topico != 'message/All' || brokerReply.topico != '/heartbeat'))) {
+        if (idPeticionRep == 1 || (idPeticionRep != 1 && (brokerReply.topico != 'message/All' || brokerReply.topico != 'heartbeat'))) {
             let broker = getBrokerByTopico(brokerReply.topico, "S");
             if (broker != null) {
                 sock = broker.sock;

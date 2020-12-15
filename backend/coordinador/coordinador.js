@@ -9,7 +9,7 @@ setTimeout(() => {
   reply.bind('tcp://' + init.getProp('RESPCLIENTEIP') + ':' + init.getProp('RESPCLIENTEPUERTO'));
   let newTopico = {
     accion: 3,
-    topico: '/heartbeat'
+    topico: 'heartbeat'
   }
   asignarTopico(newTopico);
   newTopico.topico = 'message/All'
@@ -108,7 +108,7 @@ function peticionPublicacion(request,response) {
 function suscripcionTopico(request,response) {
   let brokerAsignado = getBrokerMinTopics();
   let brokerAll = getBrokerByTopico('message/All');
-  let brokerHeart = getBrokerByTopico('/heartbeat');
+  let brokerHeart = getBrokerByTopico('heartbeat');
   request.topico = 'message/'+request.topico;
   brokerAsignado.topicos.push(request.topico);
   brokerAsignado.sock.send(JSON.stringify(request));
@@ -123,7 +123,7 @@ function suscripcionTopico(request,response) {
       puerto: brokerAll.puertoSub
     },
     {
-      topico: '/heartbeat',
+      topico: 'heartbeat',
       ip: brokerHeart.ip,
       puerto: brokerHeart.puertoSub
     }]
