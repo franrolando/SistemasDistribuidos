@@ -13,7 +13,9 @@ let mensajes = [];
 let offset = 0;
 let delay = 0;
 
+//let sincroNTP = require('./clientSincro-NTP.js');
 
+var clientNTP;
 
 setTimeout(() => {
     ID_CLIENTE = init.getProp('ID_CLIENTE');
@@ -61,8 +63,8 @@ setTimeout(() => {
             brokerHeart.sock.send(['heartbeat', obj]);
         }
     }, 10000);
-
-    var clientNTP = new net.Socket();
+/*
+    clientNTP = new net.Socket();
     clientNTP.connect(1337, '127.0.0.1', function () {
     });
     
@@ -72,7 +74,7 @@ setTimeout(() => {
             delay = del;
         };
         sincroNTP.getOffSetDelayNTP(clientNTP, callback);
-    }, 120000);
+    }, 120000);*/
 
     initPrompt();
 }, 1000);
@@ -90,7 +92,7 @@ function altaSubscripcion() {
 function subscribirseTopicoReply(brokersReply, idPeticionRep) {
     brokersReply.forEach(brokerReply => {
         let sock;
-        if (idPeticionRep == 1 || (idPeticionRep != 1 && (brokerReply.topico != 'message/All' || brokerReply.topico != 'heartbeat'))) {
+        if (idPeticionRep == 1 || (idPeticionRep != 1 && (brokerReply.topico != 'message/All' || brokerReply.topico != 'heartbeat'))) {            
             let broker = getBrokerByTopico(brokerReply.topico, "S");
             if (broker != null) {
                 sock = broker.sock;
@@ -111,6 +113,9 @@ function subscribirseTopicoReply(brokersReply, idPeticionRep) {
                 })
             }
             sock.subscribe(brokerReply.topico);
+            /*setTimeout(() => {
+                sock.close();
+            }, 500);*/
         }
     });
 }

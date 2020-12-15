@@ -5,6 +5,7 @@ const subSocket = zmq.socket('xsub'),
 	pubSocket = zmq.socket('xpub')
 
 const init = require('./init.js');
+const net = require('net');
 
 let COORDINADOR_IP;
 let COORDINADOR_PUERTO;
@@ -17,7 +18,10 @@ let tiempoVidaMensajes;
 let maxMensajes;
 let ipRest;
 let puertoResp;
+let puertoNTP;
+
 setTimeout(() => {
+	// levanta las propiedades
 	ID_BROKER = init.getProp('ID_BROKER');
 	COORDINADOR_IP = init.getProp('COORDINADOR_IP');
 	COORDINADOR_PUERTO = init.getProp('COORDINADOR_PUERTO');
@@ -29,18 +33,21 @@ setTimeout(() => {
 	maxMensajes = init.getProp('CANTIDADMENSAJES');
 	ipRest = init.getProp('IPRESP');
 	puertoResp = init.getProp('PUERTORESP');
-	listenReply();
-	setInterval(() => {
-		limpiarMensajes();
-	}, tiempoVidaMensajes);
-	const net = require('net');
-	var server = net.createServer(function (socket) {
+
+	puertoNTP = init.getProp('PUERTONTP');
+	
+	/*var server = net.createServer(function (socket) {
 		socket.on('data', function (data) {
 			socket.write('Connected');
 		})
 
 	});
-	server.listen(init.getProp('PUERTONTP'), '127.0.0.1');
+	server.listen(puertoNTP, '127.0.0.1');*/
+
+	listenReply();
+	setInterval(() => {
+		limpiarMensajes();
+	}, tiempoVidaMensajes);
 	subSocket.bindSync('tcp://' + IP_ENVIA + ':' + PUERTO_ENVIA + '')
 	pubSocket.bindSync('tcp://' + IP_RECIBE + ':' + PUERTO_RECIBE + '')
 

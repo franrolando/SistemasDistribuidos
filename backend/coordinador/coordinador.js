@@ -106,7 +106,12 @@ function peticionPublicacion(request,response) {
 }
 
 function suscripcionTopico(request,response) {
-  let brokerAsignado = getBrokerMinTopics();
+  
+  let brokerAsignado = getBrokerByTopico('message/'+request.topico);
+  if(brokerAsignado == null)
+  {
+    brokerAsignado = getBrokerMinTopics();
+  }
   let brokerAll = getBrokerByTopico('message/All');
   let brokerHeart = getBrokerByTopico('heartbeat');
   request.topico = 'message/'+request.topico;
