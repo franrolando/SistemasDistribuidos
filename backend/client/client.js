@@ -12,6 +12,7 @@ let fechaSincro = new Date();
 let mensajes = [];
 let offset = 0;
 let delay = 0;
+let gruposSub = [];
 
 //let sincroNTP = require('./clientSincro-NTP.js');
 
@@ -242,6 +243,7 @@ function initPrompt() {
         } else {
             switch (separado[0]) {
                 case 'enviar':
+                    let grupoSub = true;
                     let mensajeSpliteado = [];
                     if (separado[1] != '-g' && separado[1] != '-u') { // mensaje/all
                         for (let i = 1; i < separado.length; i++) {
@@ -253,6 +255,9 @@ function initPrompt() {
                             mensajeSpliteado.push(separado[i]);
                         }
                         if (separado[1] == '-g') { // grupo
+                            if (!gruposSub.some(nombGrupo => nombGrupo == separado[2])){
+                                grupoSub = false
+                            }
                             topico = 'message/g_' + separado[2];
                         } else {
                             if (separado[1] == '-u') { // un X cliente
@@ -277,10 +282,15 @@ function initPrompt() {
                     obj.emisor = ID_CLIENTE;
                     obj.mensaje = mensaje;
                     obj.fecha = new Date(new Date().getTime() + offset + delay);
-                    publicarMensaje(topico, obj);
+                    if (grupoSub){
+                        publicarMensaje(topico, obj);
+                    } else {
+                        console.log('No estas subscripto al grupo')
+                    }
                     break;
                 case '/group':
                     let grupo = separado[1];
+                    gruposSub.push(grupo);
                     grupo = 'g_' + grupo;
                     peticionGrupo(grupo);
                     break;

@@ -59,6 +59,7 @@ function asignarTopico(request) {
       existeTopico = true;
     }
   })
+  
   if (!existeTopico) {
     let brokerMin = getBrokerMinTopics();
     brokerMin.topicos.push(request.topico);

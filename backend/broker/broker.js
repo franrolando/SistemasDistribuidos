@@ -83,7 +83,7 @@ pubSocket.on('message', function (topic) {
 	topic = topic.slice(1);
 	console.log('Se subscribieron a ' + topic);
 	let topico = topics.find(topico => topico.nombre == topic);
-	console.log(topics);
+	console.log(topico.colaMensajes);
 
 	topico.colaMensajes.forEach(mensaje => {
 		console.log('Enviando ' + mensaje);
@@ -92,10 +92,11 @@ pubSocket.on('message', function (topic) {
 })
 
 function limpiarMensajes() {
-	colaMensajes.forEach(topico => {
+	console.log('limpiando mensajes')
+	topics.forEach(topico => {
 		let newCola = [];
 		topico.colaMensajes.forEach(mensaje => {
-			if (mensaje.fecha.getTime() > new Date().getTime() - tiempoVidaMensajes) {
+			if (new Date(mensaje.fecha).getTime() > new Date().getTime() - tiempoVidaMensajes) {
 				newCola.push(mensaje);
 			}
 		});

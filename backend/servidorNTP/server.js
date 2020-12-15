@@ -1,20 +1,17 @@
 const net = require('net');
 
-var server = net.createServer(function (socket) {
+const port = 1337; 
+
+const server = net.createServer(function (socket) {
     socket.on('data', function (data) {
-        var T2 = new Date().getTime();
-        var client = new net.Socket();
-
-        // después de conectarse al broker, genera el T3
-        client.connect(1338, '127.0.0.1', function () {
-            client.write(new Date().getTime().toString());
-            client.on('data', function (dataBroker) {
-                var T3 = new Date().getTime();
-                socket.write(data.toString() + ',' + T2.toString() + ',' + T3.toString());
-            });
-        });
-    })
-
+        const request = JSON.parse(data);
+        const reply = {
+            t1: request.t1,
+            t2: new Date().toISOString(),
+            t3: new Date().toISOString()
+        }
+        socket.write(JSON.stringify(reply));
+    });
 });
 
-server.listen(1337, '127.0.0.1');
+server.listen(port);
