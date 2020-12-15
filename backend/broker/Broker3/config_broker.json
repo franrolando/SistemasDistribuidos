@@ -1,0 +1,15 @@
+{
+  "puertoREP": "5556",
+  "puertoPUB": "3000",
+  "puertoSUB": "3001",
+  "ipNTP": "127.0.0.1",
+  "puertoNTP": "1337",
+  "periodoReloj": 7000,
+  "periodoCola": 4000,
+  "plazoMaxCola": 10000,
+  "tamMaxCola": 50,
+  "plazoMaxHeart": 30000,
+  "periodoListaHeart": 10000,
+  "ipCoord": "127.0.0.1",
+  "puertoCoord": "5555"
+}
